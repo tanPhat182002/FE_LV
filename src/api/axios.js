@@ -1,43 +1,44 @@
 import axios from 'axios'
+import store from '@/store'
+import router from '@/router'
 
-const apiClient = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://localhost:8000/api',
+const api = axios.create({
+  baseURL: 'http://localhost:8000/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 })
 
-// Request interceptor
-apiClient.interceptors.request.use(
-  config => {
-    console.log('API Request:', {
-      url: config.url,
-      method: config.method,
-      params: config.params
-    })
-    return config
-  },
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  response => response,
   error => {
-    console.error('Request Error:', error)
+    if (error.response?.status === 401) {
+      // Clear auth data
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      
+      // Reset store state
+      store.commit('user/LOGOUT')
+      
+      // Redirect to login
+      router.push({
+        name: 'login',
+        query: { 
+          message: 'Phiên đăng nhập đã hết hạn'
+        }
+      })
+    }
     return Promise.reject(error)
   }
 )
 
-// Response interceptor
-apiClient.interceptors.response.use(
-  response => {
-    console.log('API Response:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    })
-    return response
-  },
-  error => {
-    console.error('Response Error:', error)
-    return Promise.reject(error)
-  }
-)
-
-export default apiClient
+export default api

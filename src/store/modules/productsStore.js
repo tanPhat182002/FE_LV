@@ -164,13 +164,27 @@ const productsStore = {
       try {
         commit('SET_LOADING', true)
         commit('CLEAR_ERROR')
-
-        const response = await productsApi.getOne(id)
-        commit('SET_PRODUCT', response.data)
         
-        return response.data
+        const response = await productsApi.getOne(id)
+        console.log('API Response:', response) // Debug response
+
+        if (!response.data) {
+          throw new Error('Không có dữ liệu sản phẩm')
+        }
+
+        // Đảm bảo dữ liệu được format đúng trước khi commit
+        const productData = {
+          ...response.data,
+          variants: response.data.variants || [],
+          images: response.data.images || [],
+          is_active: response.data.is_active ?? true
+        }
+
+        commit('SET_PRODUCT', productData)
+        return productData
 
       } catch (error) {
+        console.error('Fetch product error:', error)
         const message = error.response?.data?.message || 'Có lỗi xảy ra khi tải thông tin'
         commit('SET_ERROR', message)
         throw error
@@ -273,6 +287,40 @@ const productsStore = {
       commit('RESET_FILTERS')
       commit('UPDATE_PAGINATION_PAGE', 1)
       await dispatch('fetchProducts')
+    },
+    async deleteImage({ commit }, { productId, imageId }) {
+      try {
+        commit('SET_LOADING', true)
+        commit('CLEAR_ERROR')
+    
+        await productsApi.deleteImage(productId, imageId)
+        return true
+    
+      } catch (error) {
+        const message = error.response?.data?.message || 'Có lỗi xảy ra khi xóa ảnh'
+        commit('SET_ERROR', message)
+        throw error
+      } finally {
+        commit('SET_LOADING', false)
+      }
+    },
+    
+    // Delete product variant  
+    async deleteVariant({ commit }, { productId, variantId }) {
+      try {
+        commit('SET_LOADING', true)
+        commit('CLEAR_ERROR')
+    
+        await productsApi.deleteVariant(productId, variantId) 
+        return true
+    
+      } catch (error) {
+        const message = error.response?.data?.message || 'Có lỗi xảy ra khi xóa biến thể'
+        commit('SET_ERROR', message)
+        throw error
+      } finally {
+        commit('SET_LOADING', false)
+      }
     }
   }
 }

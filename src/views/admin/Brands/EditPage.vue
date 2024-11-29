@@ -136,7 +136,7 @@ const formData = ref({
 })
 
 // Computed
-const isLoading = computed(() => store.getters['brands/loading'])
+const isLoading = computed(() => store.getters['brands/isLoading'])
 const error = computed(() => store.getters['brands/error'])
 const currentImage = computed(() => store.getters['brands/brand']?.image)
 
@@ -145,13 +145,6 @@ const nameRules = [
   v => !!v || 'Tên thương hiệu không được để trống',
   v => (v && v.length <= 50) || 'Tên thương hiệu không được vượt quá 50 ký tự'
 ]
-
-// const imageRules = [
-//   value => {
-//     if (!value) return true // Optional
-//     return value.size < 2000000 || 'Kích thước logo phải nhỏ hơn 2MB'
-//   }
-// ]
 
 // Methods
 const handleImageChange = (file) => {
@@ -189,7 +182,7 @@ const handleSubmit = async () => {
     errors.value = {}
     await store.dispatch('brands/updateBrand', {
       id: route.params.id,
-      payload: formData.value
+      data: formData.value
     })
     router.push({ 
       name: 'admin-brands',

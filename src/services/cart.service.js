@@ -25,11 +25,23 @@ export class CartService {
   
       if (existingItemIndex >= 0) {
         // Update quantity if exists
-        cart[existingItemIndex].quantity += product.quantity
+        const existingItem = cart[existingItemIndex]
+        const newQuantity = existingItem.quantity + product.quantity
+        
+        // Check if new quantity exceeds maxQuantity
+        if (newQuantity > product.maxQuantity) {
+          throw new Error(`Số lượng vượt quá giới hạn cho phép (${product.maxQuantity})`)
+        }
+        
+        existingItem.quantity = newQuantity
+        // Update other properties in case they changed
+        existingItem.price = product.price
+        existingItem.originalPrice = product.originalPrice
+        existingItem.maxQuantity = product.maxQuantity
       } else {
         // Add new item if not exists
         cart.push({
-          id: Date.now(), // Unique cart item id
+          id: Date.now(),
           productId: product.productId,
           variantId: product.variantId,
           name: product.name,

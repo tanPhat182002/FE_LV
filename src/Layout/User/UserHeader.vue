@@ -29,7 +29,7 @@
 
     <!-- Cart Button -->
     <v-btn prepend-icon="mdi-cart" class="mr-4" to="/cart">
-      Cart
+      Giỏ hàng
       <v-badge
         v-if="cartCount > 0"
         color="error"
@@ -39,14 +39,58 @@
       />
     </v-btn>
 
+    <!-- User Menu -->
+    <template v-if="isAuthenticated">
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            prepend-icon="mdi-account"
+          >
+            {{ user?.name || 'Tài khoản' }}
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item to="/profile">
+            <v-list-item-title>
+              <v-icon start>mdi-account-circle</v-icon>
+              Thông tin cá nhân
+            </v-list-item-title>
+          </v-list-item>
+          
+          <v-list-item to="/orders">
+            <v-list-item-title>
+              <v-icon start>mdi-package-variant</v-icon>
+              Đơn hàng của tôi
+            </v-list-item-title>
+          </v-list-item>
+
+          <v-divider></v-divider>
+
+          <v-list-item @click="handleLogout">
+            <v-list-item-title class="text-error">
+              <v-icon start color="error">mdi-logout</v-icon>
+              Đăng xuất
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </template>
+
     <!-- Login Button -->
-    <v-btn prepend-icon="mdi-account" color="primary">
-      Login
+    <v-btn
+      v-else
+      prepend-icon="mdi-account"
+      color="primary"
+      to="/login"
+    >
+      Đăng nhập
     </v-btn>
 
     <!-- Mobile Menu Button -->
     <v-app-bar-nav-icon
-      class="d-md-none"
+      class="d-md-none ml-4"
       @click="drawer = true"
     />
 
@@ -66,28 +110,88 @@
           <v-list-item-title>{{ item.title }}</v-list-item-title>
         </v-list-item>
       </v-list>
+
+      <v-divider></v-divider>
+
+      <!-- Mobile User Menu -->
+      <v-list v-if="isAuthenticated">
+        <v-list-item to="/profile" prepend-icon="mdi-account-circle">
+          <v-list-item-title>Thông tin cá nhân</v-list-item-title>
+        </v-list-item>
+        
+        <v-list-item to="/orders" prepend-icon="mdi-package-variant">
+          <v-list-item-title>Đơn hàng của tôi</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item @click="handleLogout" prepend-icon="mdi-logout">
+          <v-list-item-title class="text-error">Đăng xuất</v-list-item-title>
+        </v-list-item>
+      </v-list>
+
+      <!-- Add Login Button for Mobile when not authenticated -->
+      <v-list v-else>
+        <v-list-item to="/login" prepend-icon="mdi-account">
+          <v-list-item-title>Đăng nhập</v-list-item-title>
+        </v-list-item>
+      </v-list>
     </v-navigation-drawer>
   </v-app-bar>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import { useCart } from '@/composable/useCart'
 
 const router = useRouter()
+const store = useStore()
 const { cartCount } = useCart()
 
 // State
 const drawer = ref(false)
 
+// Computed properties để lấy thông tin user từ store
+const isAuthenticated = computed(() => store.getters['user/isAuthenticated'])
+const user = computed(() => store.getters['user/currentUser'])
+
 // Menu Items
 const menuItems = [
-  { title: 'Home', icon: 'mdi-home', route: '/' },
-  { title: 'Products', icon: 'mdi-package', route: '/products' },
-  { title: 'About', icon: 'mdi-information', route: '/about' },
-  { title: 'Contact', icon: 'mdi-phone', route: '/contact' }
+  { title: 'Trang chủ', icon: 'mdi-home', route: '/' },
+  { title: 'Sản phẩm', icon: 'mdi-package', route: '/products' },
+  { title: 'Giới thiệu', icon: 'mdi-information', route: '/about' },
+  { title: 'Liên hệ', icon: 'mdi-phone', route: '/contact' }
 ]
+
+// Logout handler
+const handleLogout = async () => {
+  try {
+    await store.dispatch('user/logout')
+    // Xóa token và thông tin người dùng khỏi localStorage
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    // Chuyển hướng về trang chủ thay vì login
+    router.push({
+      name: 'home',
+      query: { 
+        message: 'Đăng xuất thành công' 
+      }
+    })
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Nếu lỗi Unauthenticated, vẫn xóa dữ liệu local và chuyển hướng
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      router.push({
+        name: 'home',
+        query: { 
+          message: 'Phiên đăng nhập đã hết hạn' 
+        }
+      })
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -1,18 +1,23 @@
 import api from '../axios'
 
+const resource = '/home'
+
 export default {
-  // Get featured/new products for home page
-  getProducts(params) {
-    return api.get('/home', { params })
+  getProducts() {
+    return api.get(`${resource}`)
+      .then(response => Promise.resolve(response))
+      .catch(error => Promise.reject(error))
   },
 
-  // Get flash sale data
   getFlashSale() {
-    return api.get('/home/flash-sale')
+    return api.get(`${resource}/flash-sale`)
+      .then(response => Promise.resolve(response))
+      .catch(error => Promise.reject(error))
   },
 
-  // Get product detail
-  getProductDetail(id) {
-    return api.get(`/home/getDetail/${id}`)
+  getDetail(id) {
+    return api.get(`${resource}/getDetail/${id}`)
+      .then(response => Promise.resolve(response))
+      .catch(error => Promise.reject(error))
   }
 }

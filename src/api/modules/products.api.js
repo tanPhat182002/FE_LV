@@ -55,28 +55,27 @@ export default {
     const formData = new FormData()
     formData.append('_method', 'PUT')
 
-    if (data.name) formData.append('name', data.name)
-    if (data.description) formData.append('description', data.description)
-    if (data.price) formData.append('price', data.price)
-    if (data.brand_id) formData.append('brand_id', data.brand_id)
-    if (data.category_id) formData.append('category_id', data.category_id)
-    if (typeof data.is_active !== 'undefined') {
-      formData.append('is_active', data.is_active ? 1 : 0)
-    }
+    // Đảm bảo các trường bắt buộc luôn được gửi đi
+    formData.append('name', data.get('name') || '')
+    formData.append('description', data.get('description') || '')
+    formData.append('price', data.get('price') || 0)
+    formData.append('brand_id', data.get('brand_id') || '')
+    formData.append('category_id', data.get('category_id') || '')
+    formData.append('is_active', data.get('is_active') === '1' ? '1' : '0')
 
     // Cập nhật variants
-    if (data.variants?.length) {
-      data.variants.forEach((variant, index) => {
-        formData.append(`variants[${index}][color_id]`, variant.color_id)
-        formData.append(`variants[${index}][size_id]`, variant.size_id)
-        formData.append(`variants[${index}][stock_quantity]`, variant.stock_quantity) 
-      })
-    }
+    const variantKeys = Array.from(data.keys())
+      .filter(key => key.startsWith('variants'))
+    
+    variantKeys.forEach(key => {
+      formData.append(key, data.get(key))
+    })
 
     // Cập nhật hình ảnh
-    if (data.images?.length) {
-      data.images.forEach((image, index) => {
-        formData.append(`images[${index}]`, image)
+    const imageFiles = data.getAll('images[]')
+    if (imageFiles?.length) {
+      imageFiles.forEach(file => {
+        formData.append('images[]', file)
       })
     }
 
@@ -90,5 +89,13 @@ export default {
   // Xóa sản phẩm
   delete(id) {
     return api.delete(`${resource}/${id}`)
+  },
+  deleteImage(productId, imageId) {
+    return api.delete(`${resource}/${productId}/images/${imageId}`)
+  },
+  
+  // Delete product variant
+  deleteVariant(productId, variantId) {
+    return api.delete(`${resource}/${productId}/variants/${variantId}`)
   }
 }

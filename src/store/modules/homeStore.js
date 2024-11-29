@@ -216,7 +216,7 @@ const homeStore = {
         commit('SET_PRODUCT_DETAIL_LOADING', true)
         commit('SET_PRODUCT_DETAIL_ERROR', null)
 
-        const response = await homeApi.getProductDetail(productId)
+        const response = await homeApi.getDetail(productId)
 
         if (!response?.data?.success) {
           throw new Error('Failed to fetch product detail')

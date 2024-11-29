@@ -121,6 +121,28 @@ const adminRoutes = [
           }
         ],
       },
+      {
+        path: "promotions",
+        component: () => import("@/views/admin/Promotions/PromtionsLayout.vue"),
+        children: [
+          {
+            path: "",
+            name: "admin-promotions",
+            component: () => import("@/views/admin/Promotions/IndexPage.vue"),
+          },
+          {
+            path: "create",
+            name: "admin-promotions-create",
+            component: () => import("@/views/admin/Promotions/CreatePage.vue"),
+          },
+          {
+            path: "edit/:id",
+            name: "admin-promotions-edit",
+            component: () => import("@/views/admin/Promotions/EditPage.vue"),
+          },
+        ]
+      },
+
     ],
   },
 ];

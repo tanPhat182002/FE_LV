@@ -1,32 +1,35 @@
 <!-- views/admin/Colors/EditPage.vue -->
 <template>
   <v-card>
-    <v-card-title class="text-h6 px-4 py-3">
-      Chỉnh sửa màu sắc
-    </v-card-title>
+    <v-toolbar
+      flat
+      color="transparent"
+    >
+      <v-toolbar-title class="text-h6">
+        Chỉnh sửa màu sắc
+      </v-toolbar-title>
+    </v-toolbar>
 
     <v-divider></v-divider>
 
-    <v-form ref="form" @submit.prevent="handleSubmit">
+    <v-form @submit.prevent="handleSubmit" ref="form">
       <v-card-text>
         <v-row>
           <v-col cols="12">
             <v-text-field
               v-model="formData.name"
               label="Tên màu sắc"
+              :rules="nameRules"
               variant="outlined"
               density="comfortable"
-              :rules="rules.name"
               required
               :error-messages="errors.name"
-              hide-details="auto"
-              class="mb-3"
             ></v-text-field>
           </v-col>
 
           <v-col cols="12">
             <!-- Preview image -->
-            <div v-if="currentImage || imagePreview" class="mb-3 d-flex justify-center">
+            <div v-if="currentImage || imagePreview" class="mb-3">
               <v-img
                 :src="imagePreview || currentImage"
                 width="200"
@@ -42,7 +45,7 @@
                     ></v-progress-circular>
                   </div>
                 </template>
-
+                
                 <template v-slot:error>
                   <div class="d-flex align-center justify-center fill-height">
                     <v-icon
@@ -55,21 +58,19 @@
               </v-img>
             </div>
 
-            <!-- File input -->
+            <!-- Input file -->
             <v-file-input
               v-model="formData.code"
-              accept="image/*"
               label="Hình ảnh màu sắc"
+              accept="image/*"
+              :rules="imageRules"
               variant="outlined"
               density="comfortable"
-              :rules="rules.code"
               prepend-icon="mdi-camera"
               :error-messages="errors.code"
               @update:model-value="handleImageChange"
               show-size
               truncate-length="25"
-              class="mb-2"
-              hide-details="auto"
             >
               <template v-slot:selection="{ fileNames }">
                 <template v-for="fileName in fileNames" :key="fileName">
@@ -93,6 +94,7 @@
           type="error"
           variant="tonal"
           class="mt-4"
+          closable
         >
           {{ error }}
         </v-alert>
@@ -129,7 +131,7 @@
       location="top right"
     >
       {{ snackbar.text }}
-
+      
       <template #actions>
         <v-btn
           variant="text"
@@ -144,21 +146,22 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useStore } from 'vuex'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const store = useStore()
-const router = useRouter()
 const route = useRoute()
+const router = useRouter()
+
+// Refs
 const form = ref(null)
+const imagePreview = ref(null)
+const errors = ref({})
 
 // Form data
 const formData = ref({
   name: '',
   code: null
 })
-
-// Preview
-const imagePreview = ref(null)
 
 // UI states
 const snackbar = ref({
@@ -167,26 +170,18 @@ const snackbar = ref({
   color: 'success'
 })
 
-const errors = ref({})
-
-// Validation rules
-const rules = {
-  name: [
-    v => !!v || 'Vui lòng nhập tên màu sắc',
-    v => (v && v.length <= 255) || 'Tên không được vượt quá 255 ký tự'
-  ],
-//   code: [
-//     v => {
-//       if (!v) return true // Optional on edit
-//       return v.size < 2000000 || 'Kích thước hình ảnh phải nhỏ hơn 2MB'
-//     }
-//   ]
-}
-
 // Computed
 const isLoading = computed(() => store.getters['colors/isLoading'])
 const error = computed(() => store.getters['colors/error'])
 const currentImage = computed(() => store.getters['colors/color']?.code)
+
+// Validation rules
+const nameRules = [
+  v => !!v || 'Tên màu sắc không được để trống',
+  v => (v && v.length <= 255) || 'Tên màu sắc không được vượt quá 255 ký tự'
+]
+
+
 
 // Methods
 const showMessage = (text, color = 'success') => {
@@ -199,11 +194,11 @@ const showMessage = (text, color = 'success') => {
 
 const handleImageChange = (file) => {
   if (file && file instanceof File) {
-    // Cleanup old preview
+    // Kiểm tra và xử lý URL cũ
     if (imagePreview.value) {
       URL.revokeObjectURL(imagePreview.value)
     }
-    // Create new preview
+    // Tạo URL mới
     imagePreview.value = URL.createObjectURL(file)
   } else {
     imagePreview.value = null
@@ -228,7 +223,7 @@ const handleSubmit = async () => {
   const { valid } = await form.value.validate()
   
   if (!valid) return
-
+  
   try {
     errors.value = {}
     
@@ -239,7 +234,6 @@ const handleSubmit = async () => {
       formDataToSend.append('code', formData.value.code)
     }
 
-    // Use updateColor action
     await store.dispatch('colors/updateColor', {
       id: route.params.id,
       data: formDataToSend
@@ -256,22 +250,23 @@ const handleSubmit = async () => {
       errors.value = error.response.data.errors
     } else {
       showMessage(
-        error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật màu sắc', 
+        error.response?.data?.message || 'Có lỗi xảy ra khi cập nhật màu sắc',
         'error'
       )
     }
   }
 }
 
-// Lifecycle hooks
-onMounted(() => {
-  fetchColor()
-})
-
+// Cleanup URL khi component bị hủy
 onUnmounted(() => {
   if (imagePreview.value) {
     URL.revokeObjectURL(imagePreview.value)
   }
+})
+
+// Lifecycle
+onMounted(() => {
+  fetchColor()
 })
 </script>
 

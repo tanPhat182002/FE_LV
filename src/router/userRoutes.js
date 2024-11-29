@@ -1,6 +1,5 @@
 import UserLayout from "../Layout/User/UserLayout.vue"
 import HomePage from "../views/user/HomePage.vue"
-import UserPrivate from "../views/user/UserPrivate.vue"
 import CartPage from "../views/user/CartPage.vue"
 
 const userRoutes = [{
@@ -13,20 +12,29 @@ const userRoutes = [{
             component: HomePage,
         },
         {
-            path: "user",
-            component: UserPrivate,
+            path: '/profile',
+            name: 'profile',
+            component: () => import('../views/auth/ProfilePage.vue'),
+            
         },
         {
             path: "cart",
             name: "cart",
             component: CartPage,
         },
-          // Thêm route chi tiết sản phẩm
+        
           {
             path: "products/:id",
             name: "product-detail", 
             component: () => import("../views/user/ProductDetailPage.vue")
+        },
+        
+        {
+            path: "/forgot-password",
+            name: "forgot-password",
+            component: () => import("../views/auth/ForgotPasswordPage.vue")
         }
+
     ],
 }]
 

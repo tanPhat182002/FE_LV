@@ -107,14 +107,13 @@ const colorsStore = {
         },
 
         // Cập nhật color
-        async updateColor({ commit, dispatch }, { id, formData }) {
+        async updateColor({ commit, dispatch }, { id, data }) {
             try {
                 commit('SET_LOADING', true) 
                 commit('CLEAR_ERROR')
 
-                const response = await colorsApi.update(id, formData)
-                await dispatch('fetchColors') // Refresh list
-
+                const response = await colorsApi.update(id, data)
+                await dispatch('fetchColors')
                 return response.data
 
             } catch (error) {

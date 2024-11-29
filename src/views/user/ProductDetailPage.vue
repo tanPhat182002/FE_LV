@@ -9,12 +9,12 @@
       <v-row>
         <!-- Image Gallery Section -->
         <v-col cols="12" md="6">
-          <v-card class="bg-surface">
+          <v-card class="bg-surface product-gallery">
             <v-img
               :src="currentImage"
               cover
               height="400"
-              class="bg-grey-lighten-2"
+              class="bg-grey-lighten-2 product-main-image"
             >
               <template #placeholder>
                 <div class="d-flex align-center justify-center fill-height">
@@ -46,7 +46,7 @@
 
         <!-- Product Info Section -->
         <v-col cols="12" md="6">
-          <v-card>
+          <v-card class="product-info-card">
             <v-card-item>
               <v-card-title class="text-h5 font-weight-bold">
                 {{ product.name }}
@@ -159,39 +159,35 @@
                   </div>
                 </div>
 
-                <div class="d-flex align-center">
+                <div class="d-flex align-center quantity-selector">
+                  <v-btn
+                    icon="mdi-minus"
+                    size="small"
+                    variant="outlined"
+                    :disabled="quantity <= 1"
+                    @click="decreaseQuantity"
+                    class="quantity-btn"
+                  />
+                  
                   <v-text-field
                     v-model="quantity"
-                    density="compact"
                     type="number"
+                    density="compact"
+                    variant="plain"
                     hide-details
-                    variant="outlined"
                     class="quantity-input"
-                    min="1"
-                    :max="maxQuantity"
-                    :error="!!quantityError"
-                    :error-messages="quantityError"
-                    @update:model-value="handleQuantityChange"
-                  >
-                    <template #prepend>
-                      <v-btn
-                        icon="mdi-minus"
-                        size="small"
-                        variant="text"
-                        :disabled="quantity <= 1"
-                        @click="decreaseQuantity"
-                      />
-                    </template>
-                    <template #append>
-                      <v-btn
-                        icon="mdi-plus"
-                        size="small"
-                        variant="text"
-                        :disabled="quantity >= maxQuantity"
-                        @click="increaseQuantity"
-                      />
-                    </template>
-                  </v-text-field>
+                    :rules="[validateQuantity]"
+                    @input="handleQuantityChange"
+                  />
+                  
+                  <v-btn
+                    icon="mdi-plus"
+                    size="small"
+                    variant="outlined"
+                    :disabled="quantity >= maxQuantity"
+                    @click="increaseQuantity"
+                    class="quantity-btn"
+                  />
                 </div>
               </div>
 
@@ -220,7 +216,7 @@
       </v-row>
 
       <!-- Product Details Tabs -->
-      <v-row class="mt-6">
+      <v-row class="product-tabs">
         <v-col cols="12">
           <v-card>
             <v-tabs v-model="activeTab">
@@ -436,33 +432,6 @@ const hasAvailableSize = (variant) => {
   return getColorStock(variant) > 0
 }
 
-const validateQuantity = (value) => {
-  const numValue = parseInt(value)
-  
-  if (isNaN(numValue)) {
-    return 'Số lượng không hợp lệ'
-  }
-  
-  if (numValue < 1) {
-    return 'Số lượng phải lớn hơn 0'
-  }
-  
-  if (numValue > maxQuantity.value) {
-    return `Số lượng không được vượt quá ${maxQuantity.value}`
-  }
-  
-  return ''
-}
-
-const handleQuantityChange = (value) => {
-  const error = validateQuantity(value)
-  quantityError.value = error
-  
-  if (error) {
-    quantity.value = Math.max(1, Math.min(parseInt(value) || 1, maxQuantity.value))
-  }
-}
-
 const decreaseQuantity = () => {
   if (quantity.value > 1) {
     quantity.value--
@@ -502,10 +471,16 @@ const addToCart = async () => {
       maxQuantity: selectedVariant.value.stock
     }
     
-    // Add to cart using CartService
-    CartService.addToCart(productData)
-    
-    showMessage('Thêm vào giỏ hàng thành công')
+    try {
+      // Add to cart using CartService
+      CartService.addToCart(productData)
+      showMessage('Thêm vào giỏ hàng thành công')
+      
+      // Reset quantity after successful add
+      quantity.value = 1
+    } catch (cartError) {
+      showMessage(cartError.message, 'error')
+    }
   } catch (error) {
     console.error('Error adding to cart:', error)
     showMessage('Có lỗi xảy ra khi thêm vào giỏ hàng', 'error')
@@ -562,6 +537,19 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   store.commit('home/clearCurrentProduct')
 })
+
+const validateQuantity = (value) => {
+  const numValue = parseInt(value)
+  if (isNaN(numValue) || numValue < 1) return 'Số lượng phải lớn hơn 0'
+  if (numValue > maxQuantity.value) return `Tối đa ${maxQuantity.value}`
+  return true
+}
+
+const handleQuantityChange = (event) => {
+  let value = parseInt(event.target.value)
+  if (isNaN(value)) value = 1
+  quantity.value = Math.max(1, Math.min(value, maxQuantity.value))
+}
 </script>
 
 <style scoped>
@@ -617,5 +605,118 @@ onBeforeUnmount(() => {
     width: 24px;
     height: 24px;
   }
+}
+
+/* Tablet styles */
+@media (min-width: 601px) and (max-width: 960px) {
+  .v-container {
+    max-width: 90%;
+  }
+
+  .v-img.product-main-image {
+    height: 350px !important;
+  }
+
+  .quantity-input {
+    max-width: 130px;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 961px) {
+  .v-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .product-gallery {
+    position: sticky;
+    top: 2rem;
+  }
+
+  .v-img.product-main-image {
+    height: 500px !important;
+  }
+
+  .product-info-card {
+    height: 100%;
+  }
+
+  .product-tabs {
+    margin-top: 3rem;
+  }
+
+  /* Hover effects for desktop */
+  .cursor-pointer:hover {
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+  }
+
+  .v-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    transition: transform 0.2s ease;
+  }
+
+  .v-chip:not(.v-chip--disabled):hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+  }
+}
+
+/* Large desktop styles */
+@media (min-width: 1264px) {
+  .v-container {
+    max-width: 1400px;
+  }
+
+  .product-description {
+    font-size: 1.1rem;
+    line-height: 1.8;
+  }
+}
+
+.quantity-selector {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.quantity-btn {
+  min-width: 36px;
+  height: 36px;
+}
+
+.quantity-display {
+  min-width: 50px;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  user-select: none;
+}
+
+/* Mobile styles */
+@media (max-width: 600px) {
+  .quantity-btn {
+    min-width: 32px;
+    height: 32px;
+  }
+
+  .quantity-display {
+    min-width: 40px;
+  }
+}
+
+.quantity-input {
+  width: 60px;
+  text-align: center;
+}
+
+:deep(.quantity-input .v-field__input) {
+  text-align: center;
+  padding: 0;
 }
 </style>

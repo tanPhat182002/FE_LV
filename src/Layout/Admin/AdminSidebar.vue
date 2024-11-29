@@ -17,18 +17,40 @@
       <v-divider></v-divider>
   
       <v-list nav>
-        <v-list-item
-          v-for="item in menuItems"
-          :key="item.title"
-          :to="item.route"
-          :prepend-icon="item.icon"
-          rounded="lg"
-          class="mb-1"
-        >
-          <v-list-item-title class="white--text">
-            {{ item.title }}
-          </v-list-item-title>
-        </v-list-item>
+        <template v-for="item in menuItems" :key="item.title">
+          <v-list-group v-if="item.children">
+            <template v-slot:activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                :prepend-icon="item.icon"
+                rounded="lg"
+              >
+                <v-list-item-title class="white--text">{{ item.title }}</v-list-item-title>
+              </v-list-item>
+            </template>
+
+            <v-list-item
+              v-for="child in item.children"
+              :key="child.title"
+              :to="child.route"
+              :prepend-icon="child.icon"
+              rounded="lg"
+              class="ml-4"
+            >
+              <v-list-item-title class="white--text">{{ child.title }}</v-list-item-title>
+            </v-list-item>
+          </v-list-group><v-list-item
+            v-else
+            :to="item.route"
+            :prepend-icon="item.icon"
+            rounded="lg"
+            class="mb-1"
+          >
+            <v-list-item-title class="white--text">
+              {{ item.title }}
+            </v-list-item-title>
+          </v-list-item>
+        </template>
       </v-list>
     </v-navigation-drawer>
   </template>
@@ -54,11 +76,25 @@
       menuItems() {
         return [
           { title: 'Dashboard', icon: 'mdi-view-dashboard', route: '/admin/dashboard' },
-          { title: 'Quản Lý Danh mục', icon: 'mdi-package', route: '/admin/categories' }, // Sửa route thành /admin/categories
-          { title: 'Quản Lý Thương Hiệu', icon: 'mdi-package', route: '/admin/brands' },
-          { title: 'Quản lý Sản Phẩm', icon: 'mdi-package', route: '/admin/products' },
-          { title: 'Quản lý Màu Sắc', icon: 'mdi-package', route: '/admin/colors' },
-          { title: 'Quản lý Kích Thước', icon: 'mdi-package', route: '/admin/sizes' }
+          {
+            title: 'Quản lý Catalog',
+            icon: 'mdi-database',
+            children: [
+              { title: 'Danh mục', icon: 'mdi-folder-outline', route: '/admin/categories' },
+              { title: 'Thương hiệu', icon: 'mdi-folder-outline', route: '/admin/brands' },
+              { title: 'Sản phẩm', icon: 'mdi-package-variant', route: '/admin/products' },
+              { title: 'Màu sắc', icon: 'mdi-palette', route: '/admin/colors' },
+              { title: 'Kích thước', icon: 'mdi-ruler', route: '/admin/sizes' },
+           
+            ]
+          },
+          { title: 'Marketting', icon: 'mdi-package', 
+            children: [
+              { title: 'Khuyến mãi ', icon: 'mdi-tag', route: '/admin/promotions' },
+              { title: 'Mã giảm giá', icon: 'mdi-ticket-percent', route: '/admin/coupons' },
+            ]
+           },
+          
         ]
       }
     }

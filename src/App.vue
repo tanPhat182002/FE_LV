@@ -16,3 +16,10 @@ export default {
   }),
 }
 </script>
+
+<style>
+/* Suppress ResizeObserver warnings */
+iframe#webpack-dev-server-client-overlay {
+  display: none !important;
+}
+</style>
