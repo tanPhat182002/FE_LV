@@ -88,10 +88,7 @@
         :headers="headers"
         :items="products"
         :loading="isLoading"
-        :items-per-page="itemsPerPage"
-        :page="currentPage"
-        :items-length="totalItems"
-        @update:page="handlePageChange"
+        hide-default-footer
         class="product-table"
       >
         <!-- Index Column -->
@@ -247,6 +244,49 @@
           </v-sheet>
         </template>
       </v-data-table>
+
+      <!-- Pagination -->
+      <div class="d-flex justify-center align-center pa-4">
+        <div class="d-flex align-center">
+          <span class="text-caption text-grey me-4">
+            Hiển thị {{ pagination.from }}-{{ pagination.to }} trên {{ pagination.total }} sản phẩm
+          </span>
+          
+          <div class="d-flex">
+            <template v-for="(link, index) in pagination.links" :key="index">
+              <v-btn
+                v-if="link.label === '&laquo; Previous'"
+                :disabled="!link.url || isLoading"
+                variant="text"
+                size="small"
+                icon="mdi-chevron-left"
+                @click="handlePageChange(pagination.current_page - 1)"
+              ></v-btn>
+
+              <v-btn
+                v-else-if="link.label === 'Next &raquo;'"
+                :disabled="!link.url || isLoading"
+                variant="text"
+                size="small"
+                icon="mdi-chevron-right"
+                @click="handlePageChange(pagination.current_page + 1)"
+              ></v-btn>
+
+              <v-btn
+                v-else
+                :disabled="isLoading"
+                :color="link.active ? 'primary' : ''"
+                :variant="link.active ? 'flat' : 'text'"
+                size="small"
+                class="mx-1"
+                @click="handlePageChange(Number(link.label))"
+              >
+                {{ link.label }}
+              </v-btn>
+            </template>
+          </div>
+        </div>
+      </div>
     </v-card>
 
     <!-- Delete Dialog -->
@@ -386,12 +426,15 @@ const headers = [
 
 // Computed
 const products = computed(() => store.getters['products/products'])
+const pagination = computed(() => store.getters['products/pagination'])
+const currentPage = computed({
+  get: () => pagination.value.current_page,
+  set: (value) => handlePageChange(value)
+})
+const itemsPerPage = computed(() => pagination.value.per_page)
 const brands = computed(() => store.state.brands.brands)
 const categories = computed(() => store.state.categories.categories)
 const isLoading = computed(() => store.getters['products/isLoading'])
-const currentPage = computed(() => store.state.products.pagination.currentPage)
-const itemsPerPage = computed(() => store.state.products.pagination.itemsPerPage)
-const totalItems = computed(() => store.state.products.pagination.totalItems)
 
 // Methods
 const calculateIndex = (index) => {
@@ -479,6 +522,8 @@ const handleSearch = debounce(async () => {
       ...filters.value,
       search: search.value
     })
+    await store.dispatch('products/setCurrentPage', 1)
+    await store.dispatch('products/fetchProducts')
   } catch (error) {
     console.error('Search error:', error)
     showMessage('Có lỗi khi tìm kiếm', 'error')
@@ -488,6 +533,8 @@ const handleSearch = debounce(async () => {
 const handleFilterChange = async () => {
   try {
     await store.dispatch('products/updateFilters', filters.value)
+    await store.dispatch('products/setCurrentPage', 1)
+    await store.dispatch('products/fetchProducts')
   } catch (error) {
     console.error('Filter error:', error)
     showMessage('Có lỗi khi lọc dữ liệu', 'error')
@@ -495,8 +542,11 @@ const handleFilterChange = async () => {
 }
 
 const handlePageChange = async (page) => {
+  if (page === pagination.value.current_page) return
+  
   try {
     await store.dispatch('products/setCurrentPage', page)
+    await store.dispatch('products/fetchProducts')
   } catch (error) {
     console.error('Page change error:', error)
     showMessage('Có lỗi khi chuyển trang', 'error')

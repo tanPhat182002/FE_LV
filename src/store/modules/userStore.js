@@ -233,6 +233,22 @@ export default {
       } finally {
         commit('SET_LOADING', false)
       }
+    },
+
+    async register({ commit }, userData) {
+      try {
+        commit('SET_LOADING', true)
+        commit('SET_ERROR', null)
+
+        const response = await authApi.register(userData)
+        return response.data
+      } catch (error) {
+        const message = error.response?.data?.message || 'Đăng ký thất bại'
+        commit('SET_ERROR', message)
+        throw error
+      } finally {
+        commit('SET_LOADING', false)
+      }
     }
   },
 

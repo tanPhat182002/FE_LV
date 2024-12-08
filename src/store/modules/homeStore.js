@@ -28,7 +28,30 @@ const homeStore = {
     // Product Detail
     currentProduct: null,
     productDetailLoading: false,
-    productDetailError: null
+    productDetailError: null,
+
+    // All Products
+    allProducts: [],
+    allProductsLoading: false,
+    allProductsError: null,
+    allProductsPagination: {
+      currentPage: 1,
+      lastPage: 1,
+      perPage: 12,
+      total: 0
+    },
+    filters: {
+      category: null,
+      brand: null,
+      priceMin: null,
+      priceMax: null,
+      color: null,
+      size: null,
+      hasPromotion: false,
+      rating: null,
+      search: '',
+      sortBy: 'latest'
+    }
   }),
 
   getters: {
@@ -69,7 +92,15 @@ const homeStore = {
     // Product detail getters  
     currentProduct: state => state.currentProduct,
     productDetailLoading: state => state.productDetailLoading,
-    productDetailError: state => state.productDetailError
+    productDetailError: state => state.productDetailError,
+
+    flashSaleEndTime: state => state.flashSale.info?.end_time || null,
+
+    allProducts: state => state.allProducts,
+    allProductsLoading: state => state.allProductsLoading,
+    allProductsError: state => state.allProductsError,
+    allProductsPagination: state => state.allProductsPagination,
+    currentFilters: state => state.filters
   },
 
   mutations: {
@@ -114,6 +145,22 @@ const homeStore = {
     },
     SET_PRODUCT_DETAIL_ERROR(state, error) {
       state.productDetailError = error
+    },
+
+    SET_ALL_PRODUCTS(state, products) {
+      state.allProducts = products
+    },
+    SET_ALL_PRODUCTS_LOADING(state, status) {
+      state.allProductsLoading = status
+    },
+    SET_ALL_PRODUCTS_ERROR(state, error) {
+      state.allProductsError = error
+    },
+    SET_ALL_PRODUCTS_PAGINATION(state, pagination) {
+      state.allProductsPagination = pagination
+    },
+    UPDATE_FILTERS(state, filters) {
+      state.filters = { ...state.filters, ...filters }
     }
   },
 
@@ -272,6 +319,97 @@ const homeStore = {
     // Clear current product
     clearCurrentProduct({ commit }) {
       commit('SET_CURRENT_PRODUCT', null)
+    },
+
+    async fetchAllProducts({ commit, state }, params = {}) {
+      try {
+        commit('SET_ALL_PRODUCTS_LOADING', true)
+        commit('SET_ALL_PRODUCTS_ERROR', null)
+
+        const currentFilters = state.filters
+        const queryParams = {
+          ...currentFilters,
+          ...params
+        }
+
+        const response = await homeApi.getAllProducts(queryParams)
+
+        if (!response?.data?.success) {
+          throw new Error('Failed to fetch products')
+        }
+
+        const { data: products, pagination } = response.data
+
+        // Format lại products theo đúng cấu trúc API trả về
+        const formattedProducts = products.map(product => ({
+          id: product.id,
+          name: product.name,
+          brand: product.brand,
+          category: product.category,
+          price: {
+            original: product.price.original,
+            final: product.price.final,
+            raw: product.price.raw
+          },
+          main_image: product.main_image,
+          promotion: product.promotion,
+          variants: {
+            colors: product.variants.colors,
+            sizes: product.variants.sizes,
+            total_stock: product.variants.total_stock
+          },
+          rating: {
+            average: product.rating.average,
+            total: product.rating.total
+          }
+        }))
+
+        commit('SET_ALL_PRODUCTS', formattedProducts)
+        commit('SET_ALL_PRODUCTS_PAGINATION', {
+          currentPage: pagination.current_page,
+          lastPage: pagination.last_page,
+          perPage: pagination.per_page,
+          total: pagination.total
+        })
+        
+        if (params) {
+          commit('UPDATE_FILTERS', params)
+        }
+
+        return formattedProducts
+
+      } catch (error) {
+        console.error('Error fetching all products:', error)
+        const message = error.response?.data?.message || 'Có lỗi khi tải danh sách sản phẩm'
+        commit('SET_ALL_PRODUCTS_ERROR', message)
+        throw error
+      } finally {
+        commit('SET_ALL_PRODUCTS_LOADING', false)
+      }
+    },
+
+    // Action để cập nhật filters
+    updateFilters({ commit, dispatch }, filters) {
+      commit('UPDATE_FILTERS', filters)
+      return dispatch('fetchAllProducts')
+    },
+
+    // Action để reset filters
+    resetFilters({ commit, dispatch }) {
+      const defaultFilters = {
+        category: null,
+        brand: null,
+        priceMin: null,
+        priceMax: null,
+        color: null,
+        size: null,
+        hasPromotion: false,
+        rating: null,
+        search: '',
+        sortBy: 'latest'
+      }
+      commit('UPDATE_FILTERS', defaultFilters)
+      return dispatch('fetchAllProducts')
     }
   }
 }

@@ -7,6 +7,12 @@ import sizesStore from "./modules/sizesStore";
 import homeStore from './modules/homeStore'
 import promotionStore from './modules/promotionStore'
 import userStore from './modules/userStore'
+import discountsStore from './modules/discountsStore'
+import orderStore from "./modules/orderStore";
+import ratingStore from './modules/ratingStore'
+import dashboardStore from './modules/dashboardStore'
+
+
 const store = createStore({
   modules: {
     categories: categoriesStore,
@@ -17,6 +23,10 @@ const store = createStore({
     home: homeStore,
     promotions: promotionStore,
     user: userStore,
+    discounts: discountsStore,
+    order: orderStore,
+    rating: ratingStore,
+    dashboard:dashboardStore
   },
 });
 

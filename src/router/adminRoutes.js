@@ -142,7 +142,55 @@ const adminRoutes = [
           },
         ]
       },
-
+      {
+        path: "discounts",
+        component: () => import("@/views/admin/Discounts/DiscountsLayout.vue"), 
+        children: [
+          {
+            path: "",
+            name: "admin-discounts",
+            component: () => import("@/views/admin/Discounts/IndexPage.vue"),
+          },
+          {
+            path: "create",
+            name: "admin-discounts-create",
+            component: () => import("@/views/admin/Discounts/CreatePage.vue"),
+          },
+          {
+            path: "edit/:id",
+            name: "admin-discounts-edit",
+            component: () => import("@/views/admin/Discounts/EditPage.vue"),
+          }
+          
+        ]
+      },
+      {
+        path: "orders",
+        component: () => import("@/views/admin/Orders/OrderLayout.vue"),
+        children: [
+          {
+            path: "",
+            name: "admin-orders",
+            component: () => import("@/views/admin/Orders/IndexPage.vue"),
+          },
+          {
+            path: ":id",
+            name: "admin-orders-detail",
+            component: () => import("@/views/admin/Orders/OrderDetail.vue"),
+          }
+        ]
+      },
+      {
+        path: "ratings",
+        component: () => import("@/views/admin/Ratings/RatingLayout.vue"),
+        children: [
+          {
+            path: "",
+            name: "admin-ratings",
+            component: () => import("@/views/admin/Ratings/IndexPage.vue"),
+          }
+        ]
+      }
     ],
   },
 ];

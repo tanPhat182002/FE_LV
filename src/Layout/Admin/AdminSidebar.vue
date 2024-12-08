@@ -91,10 +91,13 @@
           { title: 'Marketting', icon: 'mdi-package', 
             children: [
               { title: 'Khuyến mãi ', icon: 'mdi-tag', route: '/admin/promotions' },
-              { title: 'Mã giảm giá', icon: 'mdi-ticket-percent', route: '/admin/coupons' },
+              { title: 'Mã giảm giá', icon: 'mdi-ticket-percent', route: '/admin/discounts' },
+              
             ]
            },
-          
+           { title: 'Đơn hàng', icon: 'mdi-package', route: '/admin/orders' },
+           { title: 'Đánh Giá', icon: 'mdi-star', route: '/admin/ratings' },
+    
         ]
       }
     }

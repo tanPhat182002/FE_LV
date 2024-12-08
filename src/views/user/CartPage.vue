@@ -230,9 +230,11 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCart } from '@/composable/useCart'
+import { useStore } from 'vuex'
 
 const router = useRouter()
 const { cartItems, updateQuantity, removeFromCart, removeMultipleItems } = useCart()
+const store = useStore()
 
 // Reactive State
 const selectedItems = ref([])
@@ -368,17 +370,50 @@ const toggleSelectAll = () => {
 const checkout = () => {
   if (!selectedItems.value.length) return
   
+  // Kiểm tra đăng nhập
+  const isAuthenticated = store.getters['user/isAuthenticated']
+  
+  if (!isAuthenticated) {
+    // Lưu items vào localStorage trước khi chuyển trang
+    const checkoutItems = cartItems.value
+      .filter(item => selectedItems.value.includes(item.id))
+      .map(item => ({
+        id: item.id,
+        variantId: item.variantId,
+        name: item.name,
+        image: item.image,
+        color: item.color,
+        size: item.size,
+        price: item.price,
+        quantity: item.quantity
+      }))
+    
+    localStorage.setItem('checkoutItems', JSON.stringify(checkoutItems))
+    
+    // Chuyển đến trang đăng nhập với redirect URL
+    router.push({
+      name: 'login',
+      query: { redirect: '/checkout' }
+    })
+    return
+  }
+  
+  // Nếu đã đăng nhập thì xử lý checkout bình thường
   const checkoutItems = cartItems.value
     .filter(item => selectedItems.value.includes(item.id))
+    .map(item => ({
+      id: item.id,
+      variantId: item.variantId,
+      name: item.name,
+      image: item.image,
+      color: item.color,
+      size: item.size,
+      price: item.price,
+      quantity: item.quantity
+    }))
   
-  console.log('Checkout items:', checkoutItems)
-  showMessage('Đặt hàng thành công')
-  
-  // Clear checked items
-  removeMultipleItems(selectedItems.value)
-  selectedItems.value = []
-  
-  router.push('/checkout/success')
+  localStorage.setItem('checkoutItems', JSON.stringify(checkoutItems))
+  router.push('/checkout')
 }
 
 // Watchers

@@ -10,34 +10,40 @@
         <!-- Image Gallery Section -->
         <v-col cols="12" md="6">
           <v-card class="bg-surface product-gallery">
-            <v-img
-              :src="currentImage"
-              cover
-              height="400"
-              class="bg-grey-lighten-2 product-main-image"
-            >
-              <template #placeholder>
-                <div class="d-flex align-center justify-center fill-height">
-                  <v-progress-circular color="grey" indeterminate />
-                </div>
-              </template>
-            </v-img>
+            <div class="image-container">
+              <v-img
+                :src="currentImage"
+                :cover="false"
+                :contain="true"
+                class="product-main-image"
+                :height="mainImageHeight"
+              >
+                <template #placeholder>
+                  <div class="d-flex align-center justify-center fill-height">
+                    <v-progress-circular color="grey" indeterminate />
+                  </div>
+                </template>
+              </v-img>
+            </div>
 
-            <v-card-text>
+            <v-card-text class="pa-4">
               <v-slide-group show-arrows>
                 <v-slide-group-item
                   v-for="image in product.images.gallery"
                   :key="image.id"
                 >
-                  <v-img
-                    :src="image.url"
-                    :class="{'border-primary': currentImage === image.url}"
-                    class="ma-2 rounded cursor-pointer"
-                    width="80"
-                    height="80"
-                    cover
-                    @click="currentImage = image.url"
-                  />
+                  <div class="thumbnail-container">
+                    <v-img
+                      :src="image.url"
+                      :class="{'border-primary': currentImage === image.url}"
+                      class="ma-2 rounded cursor-pointer thumbnail-image"
+                      :width="thumbnailSize"
+                      :height="thumbnailSize"
+                      :cover="false"
+                      :contain="true"
+                      @click="currentImage = image.url"
+                    />
+                  </div>
                 </v-slide-group-item>
               </v-slide-group>
             </v-card-text>
@@ -340,10 +346,12 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useStore } from 'vuex'
 import { useRoute } from 'vue-router'
+import { useDisplay } from 'vuetify'
 import { CartService } from '@/services/cart.service'
 
 const store = useStore()
 const route = useRoute()
+const display = useDisplay()
 
 // Reactive State
 const currentImage = ref('')
@@ -512,6 +520,9 @@ watch(() => product.value, (newProduct) => {
 // Lifecycle Hooks
 onMounted(async () => {
   try {
+    // Reset scroll position to top
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    
     const productId = route.params.id
     if (!productId) {
       showMessage('Không tìm thấy sản phẩm', 'error')
@@ -550,6 +561,19 @@ const handleQuantityChange = (event) => {
   if (isNaN(value)) value = 1
   quantity.value = Math.max(1, Math.min(value, maxQuantity.value))
 }
+
+// Computed properties for responsive image sizes
+const mainImageHeight = computed(() => {
+  if (display.mdAndUp.value) return '500px'
+  if (display.sm.value) return '400px'
+  return '300px'
+})
+
+const thumbnailSize = computed(() => {
+  if (display.mdAndUp.value) return 80
+  if (display.sm.value) return 70
+  return 60
+})
 </script>
 
 <style scoped>
@@ -718,5 +742,83 @@ const handleQuantityChange = (event) => {
 :deep(.quantity-input .v-field__input) {
   text-align: center;
   padding: 0;
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  background: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-main-image {
+  padding: 16px;
+}
+
+.thumbnail-container {
+  position: relative;
+  background: #f5f5f5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.thumbnail-image {
+  padding: 4px;
+  transition: all 0.2s ease;
+}
+
+.border-primary {
+  border: 2px solid rgb(var(--v-theme-primary)) !important;
+  transform: scale(1.05);
+}
+
+/* Mobile styles */
+@media (max-width: 600px) {
+  .product-main-image {
+    padding: 8px;
+  }
+
+  .thumbnail-image {
+    padding: 2px;
+  }
+
+  .v-card-text {
+    padding: 8px !important;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 601px) and (max-width: 960px) {
+  .product-main-image {
+    padding: 12px;
+  }
+
+  .thumbnail-image {
+    padding: 3px;
+  }
+
+  .v-card-text {
+    padding: 12px !important;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 961px) {
+  .product-gallery {
+    position: sticky;
+    top: 2rem;
+  }
+
+  .thumbnail-image:hover {
+    transform: scale(1.05);
+  }
+}
+
+/* Large desktop styles */
+@media (min-width: 1264px) {
+  .product-main-image {
+    padding: 20px;
+  }
 }
 </style>

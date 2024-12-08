@@ -1,23 +1,29 @@
 <!-- components/CountdownTimer.vue -->
 <template>
-  <div v-if="showCountdown" class="d-flex align-center">
+  <div class="countdown-timer d-flex align-center">
     <span class="text-white me-2">Kết thúc trong:</span>
-    <v-chip
-      v-for="(value, unit) in timeRemaining"
-      :key="unit"
-      color="white"
-      size="small"
-      class="font-weight-bold mx-1"
-    >
-      {{ String(value).padStart(2, '0') }}
-      {{ unit === 'hours' ? 'h' : unit === 'minutes' ? 'm' : 's' }}
-    </v-chip>
+    <div class="d-flex">
+      <div class="time-block">
+        <span class="time">{{ formatNumber(timeRemaining.hours) }}</span>
+        <small>Giờ</small>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-block">
+        <span class="time">{{ formatNumber(timeRemaining.minutes) }}</span>
+        <small>Phút</small>
+      </div>
+      <span class="separator">:</span>
+      <div class="time-block">
+        <span class="time">{{ formatNumber(timeRemaining.seconds) }}</span>
+        <small>Giây</small>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
-import { defineProps, defineEmits } from 'vue'
+import { ref, onMounted, onUnmounted, defineProps, defineEmits } from 'vue'
+
 const props = defineProps({
   endTime: {
     type: String,
@@ -26,51 +32,76 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['timeout'])
-
-const timeRemaining = ref({
-  hours: 0,
-  minutes: 0,
-  seconds: 0
-})
-
-const showCountdown = ref(true)
+const timeRemaining = ref({ hours: 0, minutes: 0, seconds: 0 })
 let timer = null
 
-const calculateTimeRemaining = () => {
-  const now = new Date().getTime()
-  const end = new Date(props.endTime).getTime()
-  const diff = end - now
+const formatNumber = (num) => {
+  return Math.max(0, Math.floor(num)).toString().padStart(2, '0')
+}
 
-  if (diff <= 0) {
-    showCountdown.value = false
+const calculateTimeRemaining = () => {
+  const endTime = new Date(props.endTime).getTime()
+  const now = new Date().getTime()
+  const timeDiff = endTime - now
+
+  if (timeDiff <= 0) {
+    timeRemaining.value = { hours: 0, minutes: 0, seconds: 0 }
     clearInterval(timer)
     emit('timeout')
     return
   }
 
+  // Chuyển đổi milliseconds thành giờ, phút, giây
+  const hours = timeDiff / (1000 * 60 * 60)
+  const minutes = (hours % 1) * 60
+  const seconds = (minutes % 1) * 60
+
   timeRemaining.value = {
-    hours: Math.floor(diff / (1000 * 60 * 60)),
-    minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-    seconds: Math.floor((diff % (1000 * 60)) / 1000)
+    hours: Math.floor(hours),
+    minutes: Math.floor(minutes),
+    seconds: Math.floor(seconds)
   }
 }
-
-// Watch for changes in endTime
-watch(() => props.endTime, (newEndTime) => {
-  if (newEndTime) {
-    showCountdown.value = true
-    calculateTimeRemaining()
-  }
-})
 
 onMounted(() => {
   calculateTimeRemaining()
   timer = setInterval(calculateTimeRemaining, 1000)
 })
 
-onBeforeUnmount(() => {
-  if (timer) {
-    clearInterval(timer)
-  }
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
 })
 </script>
+
+<style scoped>
+.countdown-timer {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.time-block {
+  text-align: center;
+  margin: 0 2px;
+}
+
+.time {
+  background: rgba(255, 255, 255, 0.9);
+  color: #ff4444;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.separator {
+  color: white;
+  font-weight: bold;
+  margin: 0 2px;
+}
+
+small {
+  color: white;
+  font-size: 0.75rem;
+  margin-left: 2px;
+}
+</style>

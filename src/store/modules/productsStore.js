@@ -11,20 +11,19 @@ const productsStore = {
     isLoading: false, // Trạng thái loading
     error: null, // Lỗi nếu có
     pagination: {
-      currentPage: 1,
-      totalPages: 1, 
-      totalItems: 0,
-      itemsPerPage: 10,
-      lastPage: 1,
-      from: null,
-      to: null
+      current_page: 1,
+      last_page: 1,
+      per_page: 12,
+      total: 0,
+      from: 0,
+      to: 0,
+      links: []
     },
     filters: {
       search: '',
       brand_id: null,
       category_id: null,
-      sortBy: 'created_at',
-      sortDesc: true
+      is_active: null
     }
   }),
 
@@ -51,22 +50,33 @@ const productsStore = {
     hasProducts: state => state.products.length > 0,
     
     // Get total products
-    totalProducts: state => state.pagination.totalItems,
+    totalProducts: state => state.pagination.total,
     
     // Get current page items count  
-    currentPageItems: state => state.pagination.to - state.pagination.from + 1,
+    currentPageItems: state => state.pagination.per_page,
     
     // Check if is first page
-    isFirstPage: state => state.pagination.currentPage === 1,
+    isFirstPage: state => state.pagination.current_page === 1,
     
     // Check if is last page
-    isLastPage: state => state.pagination.currentPage === state.pagination.lastPage,
+    isLastPage: state => state.pagination.current_page === state.pagination.last_page,
   },
 
   mutations: {
     // Set products list
-    SET_PRODUCTS(state, products) {
-      state.products = products
+    SET_PRODUCTS(state, response) {
+      if (response.success && response.data) {
+        state.products = response.data.data
+        state.pagination = {
+          current_page: response.data.current_page,
+          last_page: response.data.last_page,
+          per_page: response.data.per_page,
+          total: response.data.total,
+          from: response.data.from,
+          to: response.data.to,
+          links: response.data.links
+        }
+      }
     },
 
     // Set single product
@@ -75,8 +85,8 @@ const productsStore = {
     },
 
     // Set loading state
-    SET_LOADING(state, status) {
-      state.isLoading = status
+    SET_LOADING(state, loading) {
+      state.isLoading = loading
     },
 
     // Set error
@@ -90,7 +100,7 @@ const productsStore = {
         currentPage: data.current_page || 1,
         totalPages: data.last_page || 1,
         totalItems: data.total || 0,
-        itemsPerPage: data.per_page || 10,
+        itemsPerPage: data.per_page || 12,
         lastPage: data.last_page || 1,
         from: data.from || 0,
         to: data.to || 0
@@ -121,6 +131,10 @@ const productsStore = {
     // Clear error
     CLEAR_ERROR(state) {
       state.error = null
+    },
+
+    SET_CURRENT_PAGE(state, page) {
+      state.pagination.current_page = page
     }
   },
 
@@ -146,7 +160,7 @@ const productsStore = {
         const response = await productsApi.getAll(params)
         console.log('Response:', response)
 
-        commit('SET_PRODUCTS', response.data.data)
+        commit('SET_PRODUCTS', response.data)
         commit('SET_PAGINATION', response.data)
 
       } catch (error) {
@@ -196,7 +210,7 @@ const productsStore = {
     // Update page
     async setCurrentPage({ commit, dispatch }, page) {
       try {
-        commit('UPDATE_PAGINATION_PAGE', page)
+        commit('SET_CURRENT_PAGE', page)
         await dispatch('fetchProducts')
       } catch (error) {
         const message = error.response?.data?.message || 'Có lỗi xảy ra khi chuyển trang'
@@ -278,14 +292,14 @@ const productsStore = {
     // Update filters
     async updateFilters({ commit, dispatch }, filters) {
       commit('SET_FILTERS', filters)
-      commit('UPDATE_PAGINATION_PAGE', 1)
+      commit('SET_CURRENT_PAGE', 1)
       await dispatch('fetchProducts')
     },
 
     // Reset filters
     async resetFilters({ commit, dispatch }) {
       commit('RESET_FILTERS')
-      commit('UPDATE_PAGINATION_PAGE', 1)
+      commit('SET_CURRENT_PAGE', 1)
       await dispatch('fetchProducts')
     },
     async deleteImage({ commit }, { productId, imageId }) {

@@ -1,7 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
-    <!-- Flash Sale Section -->
-    <FlashSale />
+  
+      <!-- Flash Sale Section -->
+      <FlashSale />
 
     <!-- Featured Products Section -->  
     <FeaturedProducts />

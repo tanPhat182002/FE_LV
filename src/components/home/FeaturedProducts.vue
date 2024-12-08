@@ -12,12 +12,15 @@
         <v-col
           v-for="product in products"
           :key="product.id"
-          cols="12" 
-          sm="6"
+          cols="6" 
+          sm="4"
           md="3"
           class="d-flex"
         >
-          <ProductCard :product="product" />
+          <ProductCard 
+            :product="product"
+            class="flex-grow-1" 
+          />
         </v-col>
       </v-row>
     </v-card-text>
@@ -26,7 +29,7 @@
       <v-pagination
         v-model="currentPage"
         :length="pagination.lastPage"
-        :total-visible="7"
+        :total-visible="$vuetify.display.smAndDown ? 3 : 7"
         @update:model-value="handlePageChange"
       ></v-pagination>
     </v-card-actions>
@@ -39,7 +42,6 @@ import { useStore } from 'vuex'
 import ProductCard from './ProductCard.vue'
 
 const store = useStore()
-
 const currentPage = ref(1)
 
 // Computed
@@ -57,3 +59,23 @@ const handlePageChange = async (page) => {
   }
 }
 </script>
+
+<style scoped>
+.v-row {
+  margin: -8px;
+}
+
+.v-col {
+  padding: 8px;
+}
+
+@media (max-width: 600px) {
+  .v-row {
+    margin: -4px;
+  }
+  
+  .v-col {
+    padding: 4px;
+  }
+}
+</style>
