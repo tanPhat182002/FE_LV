@@ -4,6 +4,7 @@ import router from '@/router'
 
 const api = axios.create({
   baseURL: 'http://localhost:8000/api',
+  // baseURL: 'https://backend.thefashion.io.vn/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

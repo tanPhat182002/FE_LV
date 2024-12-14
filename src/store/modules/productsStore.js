@@ -13,11 +13,10 @@ const productsStore = {
     pagination: {
       current_page: 1,
       last_page: 1,
-      per_page: 12,
+      per_page: 10,
       total: 0,
       from: 0,
-      to: 0,
-      links: []
+      to: 0
     },
     filters: {
       search: '',
@@ -65,7 +64,7 @@ const productsStore = {
   mutations: {
     // Set products list
     SET_PRODUCTS(state, response) {
-      if (response.success && response.data) {
+      if (response.success) {
         state.products = response.data.data
         state.pagination = {
           current_page: response.data.current_page,
@@ -73,8 +72,7 @@ const productsStore = {
           per_page: response.data.per_page,
           total: response.data.total,
           from: response.data.from,
-          to: response.data.to,
-          links: response.data.links
+          to: response.data.to
         }
       }
     },
@@ -95,15 +93,14 @@ const productsStore = {
     },
 
     // Set pagination data
-    SET_PAGINATION(state, data) {
+    SET_PAGINATION(state, pagination) {
       state.pagination = {
-        currentPage: data.current_page || 1,
-        totalPages: data.last_page || 1,
-        totalItems: data.total || 0,
-        itemsPerPage: data.per_page || 12,
-        lastPage: data.last_page || 1,
-        from: data.from || 0,
-        to: data.to || 0
+        current_page: pagination.current_page,
+        last_page: pagination.last_page,
+        per_page: pagination.per_page,
+        total: pagination.total,
+        from: pagination.from,
+        to: pagination.to
       }
     },
 

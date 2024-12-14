@@ -30,7 +30,7 @@ const homeStore = {
     productDetailLoading: false,
     productDetailError: null,
 
-    // All Products
+    // All products
     allProducts: [],
     allProductsLoading: false,
     allProductsError: null,
@@ -39,18 +39,6 @@ const homeStore = {
       lastPage: 1,
       perPage: 12,
       total: 0
-    },
-    filters: {
-      category: null,
-      brand: null,
-      priceMin: null,
-      priceMax: null,
-      color: null,
-      size: null,
-      hasPromotion: false,
-      rating: null,
-      search: '',
-      sortBy: 'latest'
     }
   }),
 
@@ -94,13 +82,11 @@ const homeStore = {
     productDetailLoading: state => state.productDetailLoading,
     productDetailError: state => state.productDetailError,
 
-    flashSaleEndTime: state => state.flashSale.info?.end_time || null,
-
+    // All products getters
     allProducts: state => state.allProducts,
     allProductsLoading: state => state.allProductsLoading,
     allProductsError: state => state.allProductsError,
-    allProductsPagination: state => state.allProductsPagination,
-    currentFilters: state => state.filters
+    allProductsPagination: state => state.allProductsPagination
   },
 
   mutations: {
@@ -147,6 +133,7 @@ const homeStore = {
       state.productDetailError = error
     },
 
+    // All products mutations
     SET_ALL_PRODUCTS(state, products) {
       state.allProducts = products
     },
@@ -158,9 +145,6 @@ const homeStore = {
     },
     SET_ALL_PRODUCTS_PAGINATION(state, pagination) {
       state.allProductsPagination = pagination
-    },
-    UPDATE_FILTERS(state, filters) {
-      state.filters = { ...state.filters, ...filters }
     }
   },
 
@@ -263,7 +247,7 @@ const homeStore = {
         commit('SET_PRODUCT_DETAIL_LOADING', true)
         commit('SET_PRODUCT_DETAIL_ERROR', null)
 
-        const response = await homeApi.getDetail(productId)
+        const response = await homeApi.getProductDetail(productId)
 
         if (!response?.data?.success) {
           throw new Error('Failed to fetch product detail')
@@ -321,95 +305,31 @@ const homeStore = {
       commit('SET_CURRENT_PRODUCT', null)
     },
 
-    async fetchAllProducts({ commit, state }, params = {}) {
+    // Fetch all products
+    async fetchAllProducts({ commit }, params) {
       try {
         commit('SET_ALL_PRODUCTS_LOADING', true)
         commit('SET_ALL_PRODUCTS_ERROR', null)
 
-        const currentFilters = state.filters
-        const queryParams = {
-          ...currentFilters,
-          ...params
-        }
-
-        const response = await homeApi.getAllProducts(queryParams)
+        const response = await homeApi.getAllProducts_Filter(params)
 
         if (!response?.data?.success) {
-          throw new Error('Failed to fetch products')
+          throw new Error('Failed to fetch filtered products')
         }
 
-        const { data: products, pagination } = response.data
+        commit('SET_ALL_PRODUCTS', response.data.data)
+        commit('SET_ALL_PRODUCTS_PAGINATION', response.data.pagination)
 
-        // Format lại products theo đúng cấu trúc API trả về
-        const formattedProducts = products.map(product => ({
-          id: product.id,
-          name: product.name,
-          brand: product.brand,
-          category: product.category,
-          price: {
-            original: product.price.original,
-            final: product.price.final,
-            raw: product.price.raw
-          },
-          main_image: product.main_image,
-          promotion: product.promotion,
-          variants: {
-            colors: product.variants.colors,
-            sizes: product.variants.sizes,
-            total_stock: product.variants.total_stock
-          },
-          rating: {
-            average: product.rating.average,
-            total: product.rating.total
-          }
-        }))
-
-        commit('SET_ALL_PRODUCTS', formattedProducts)
-        commit('SET_ALL_PRODUCTS_PAGINATION', {
-          currentPage: pagination.current_page,
-          lastPage: pagination.last_page,
-          perPage: pagination.per_page,
-          total: pagination.total
-        })
-        
-        if (params) {
-          commit('UPDATE_FILTERS', params)
-        }
-
-        return formattedProducts
+        return response.data.data
 
       } catch (error) {
-        console.error('Error fetching all products:', error)
-        const message = error.response?.data?.message || 'Có lỗi khi tải danh sách sản phẩm'
+        console.error('Error fetching filtered products:', error)
+        const message = error.response?.data?.message || 'Có lỗi khi tải sản phẩm'
         commit('SET_ALL_PRODUCTS_ERROR', message)
         throw error
       } finally {
         commit('SET_ALL_PRODUCTS_LOADING', false)
       }
-    },
-
-    // Action để cập nhật filters
-    updateFilters({ commit, dispatch }, filters) {
-      commit('UPDATE_FILTERS', filters)
-      return dispatch('fetchAllProducts')
-    },
-
-    // Action để reset filters
-    resetFilters({ commit, dispatch }) {
-      const defaultFilters = {
-        category: null,
-        brand: null,
-        priceMin: null,
-        priceMax: null,
-        color: null,
-        size: null,
-        hasPromotion: false,
-        rating: null,
-        search: '',
-        sortBy: 'latest'
-      }
-      commit('UPDATE_FILTERS', defaultFilters)
-      return dispatch('fetchAllProducts')
     }
   }
 }

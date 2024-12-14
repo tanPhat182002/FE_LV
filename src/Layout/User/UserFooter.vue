@@ -6,10 +6,9 @@
       <v-row>
         <!-- Company Info -->
         <v-col cols="12" md="4">
-          <h3 class="text-h6 mb-4">About Us</h3>
+          <h3 class="text-h6 mb-4">Về chúng tôi</h3>
           <p class="text-body-2">
-            We are committed to providing our customers with the best shopping
-            experience and highest quality products.
+            Chúng tôi là một công ty thương mại điện tử, chuyên cung cấp các sản phẩm điện tử chất lượng cao và dịch vụ chăm sóc khách hàng tốt nhất.
           </p>
           <div class="mt-4">
             <v-btn
@@ -24,7 +23,7 @@
 
         <!-- Quick Links -->
         <v-col cols="12" md="4">
-          <h3 class="text-h6 mb-4">Quick Links</h3>
+          <h3 class="text-h6 mb-4">Liên kết nhanh</h3>
           <v-list density="compact" bg-color="transparent">
             <v-list-item
               v-for="link in quickLinks"
@@ -39,7 +38,7 @@
 
         <!-- Contact Info -->
         <v-col cols="12" md="4">
-          <h3 class="text-h6 mb-4">Contact Us</h3>
+          <h3 class="text-h6 mb-4">Liên hệ chúng tôi</h3>
           <v-list density="compact" bg-color="transparent">
             <v-list-item
               v-for="contact in contactInfo"
@@ -58,7 +57,7 @@
         <v-col cols="12" class="text-center mt-4">
           <v-divider class="mb-4"></v-divider>
           <span class="text-body-2">
-            © {{ new Date().getFullYear() }} Your Company Name. All rights reserved.
+            © {{ new Date().getFullYear() }} Công ty TNHH Thương mại và Dịch vụ Điện tử. All rights reserved.
           </span>
         </v-col>
       </v-row>
@@ -78,16 +77,17 @@ export default {
         { icon: 'mdi-youtube' }
       ],
       quickLinks: [
-        { title: 'Home', route: '/' },
-        { title: 'Products', route: '/products' },
-        { title: 'About Us', route: '/about' },
-        { title: 'Contact', route: '/contact' },
-        { title: 'Privacy Policy', route: '/privacy' }
+        { title: 'Trang chủ', route: '/' },
+        { title: 'Sản phẩm', route: '/products' },
+        { title: 'Về chúng tôi', route: '/about' },
+        { title: 'Liên hệ', route: '/contact' },
+        { title: 'Chính sách bảo mật', route: '/privacy' }
       ],
       contactInfo: [
-        { icon: 'mdi-map-marker', text: '123 Store Street, City, Country' },
-        { icon: 'mdi-phone', text: '+1 234 567 890' },
-        { icon: 'mdi-email', text: 'support@yourstore.com' }
+        { icon: 'mdi-map-marker', text: '180 Cao lỗ, phường 4, quận 8, TP.HCM' },
+        { icon: 'mdi-phone', text: '+84 987 654 321' },
+        { icon: 'mdi-email', text: 'trantanphat2002ks@gmail.com' }
+
       ]
     }
   }

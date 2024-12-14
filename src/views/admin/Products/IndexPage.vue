@@ -246,46 +246,13 @@
       </v-data-table>
 
       <!-- Pagination -->
-      <div class="d-flex justify-center align-center pa-4">
-        <div class="d-flex align-center">
-          <span class="text-caption text-grey me-4">
-            Hiển thị {{ pagination.from }}-{{ pagination.to }} trên {{ pagination.total }} sản phẩm
-          </span>
-          
-          <div class="d-flex">
-            <template v-for="(link, index) in pagination.links" :key="index">
-              <v-btn
-                v-if="link.label === '&laquo; Previous'"
-                :disabled="!link.url || isLoading"
-                variant="text"
-                size="small"
-                icon="mdi-chevron-left"
-                @click="handlePageChange(pagination.current_page - 1)"
-              ></v-btn>
-
-              <v-btn
-                v-else-if="link.label === 'Next &raquo;'"
-                :disabled="!link.url || isLoading"
-                variant="text"
-                size="small"
-                icon="mdi-chevron-right"
-                @click="handlePageChange(pagination.current_page + 1)"
-              ></v-btn>
-
-              <v-btn
-                v-else
-                :disabled="isLoading"
-                :color="link.active ? 'primary' : ''"
-                :variant="link.active ? 'flat' : 'text'"
-                size="small"
-                class="mx-1"
-                @click="handlePageChange(Number(link.label))"
-              >
-                {{ link.label }}
-              </v-btn>
-            </template>
-          </div>
-        </div>
+      <div class="d-flex justify-end pa-4">
+        <v-pagination
+          v-model="currentPage"
+          :length="pagination.last_page"
+          :total-visible="7"
+          @update:model-value="handlePageChange"
+        ></v-pagination>
       </div>
     </v-card>
 
@@ -542,11 +509,17 @@ const handleFilterChange = async () => {
 }
 
 const handlePageChange = async (page) => {
-  if (page === pagination.value.current_page) return
+  if (page === pagination.value.current_page || isLoading.value) return
   
   try {
     await store.dispatch('products/setCurrentPage', page)
     await store.dispatch('products/fetchProducts')
+    
+    // Scroll to top after page change
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
   } catch (error) {
     console.error('Page change error:', error)
     showMessage('Có lỗi khi chuyển trang', 'error')

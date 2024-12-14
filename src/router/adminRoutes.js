@@ -193,5 +193,10 @@ const adminRoutes = [
       }
     ],
   },
+  {
+    path: "/admin/login",
+    name: "admin-login",
+    component: () => import("@/views/admin/LoginAdminPage.vue"),
+  }
 ];
 export default adminRoutes;

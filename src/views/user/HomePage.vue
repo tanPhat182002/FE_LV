@@ -1,8 +1,8 @@
 <template>
   <v-container fluid class="pa-0">
   
-      <!-- Flash Sale Section -->
-      <FlashSale />
+      <!-- Flash Sale Section
+      <FlashSale /> -->
 
     <!-- Featured Products Section -->  
     <FeaturedProducts />
@@ -24,7 +24,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
 
-import FlashSale from '@/components/home/FlashSale.vue'
+// import FlashSale from '@/components/home/FlashSale.vue'
 import FeaturedProducts from '@/components/home/FeaturedProducts.vue'
 import LoadingOverlay from '@/components/common/LoadingOverlay.vue'
 import ErrorSnackbar from '@/components/common/ErrorSnackbar.vue'
