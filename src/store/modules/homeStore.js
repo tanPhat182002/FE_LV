@@ -311,6 +311,11 @@ const homeStore = {
         commit('SET_ALL_PRODUCTS_LOADING', true)
         commit('SET_ALL_PRODUCTS_ERROR', null)
 
+        // Decode search param nếu tồn tại
+        if (params.search) {
+          params.search = decodeURIComponent(params.search)
+        }
+
         const response = await homeApi.getAllProducts_Filter(params)
 
         if (!response?.data?.success) {

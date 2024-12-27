@@ -45,13 +45,39 @@
 
                 <!-- Address -->
                 <v-col cols="12" :class="formColSpacing">
-                  <v-text-field
-                    v-model="orderInfo.address"
-                    label="Địa chỉ giao hàng"
-                    variant="outlined"
-                    :density="inputDensity"
-                    :rules="[rules.required]"
-                  />
+                  <div class="address-search-container">
+                    <v-text-field
+                      v-model="orderInfo.address"
+                      label="Địa chỉ giao hàng"
+                      variant="outlined"
+                      :density="inputDensity"
+                      :rules="[rules.required]"
+                      @input="handleAddressInput"
+                      @click:append-inner="clearAddress"
+                      append-inner-icon="mdi-close"
+                      placeholder="Nhập địa chỉ của bạn"
+                      ref="addressInput"
+                      class="address-input"
+                      hide-details
+                    />
+                    
+                    <div v-if="showAddressResults" class="address-results">
+                      <div
+                        v-for="place in addressResults"
+                        :key="place.place_id"
+                        class="address-result-item"
+                        @click="selectAddress(place)"
+                      >
+                        <div class="main-text">
+                          <v-icon color="primary" size="20" class="mr-2">mdi-map-marker</v-icon>
+                          {{ place.structured_formatting.main_text }}
+                        </div>
+                        <div class="secondary-text">
+                          {{ place.description }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </v-col>
               </v-row>
             </v-form>
@@ -163,7 +189,7 @@
               
               <v-radio value="cod" label="Thanh toán khi nhận hàng" />
               <v-radio value="vnpay" label="Thanh toán qua VNPAY" />
-              <v-radio value="banking" label="Chuyển khoản ngân hàng" />
+             
               <v-radio value="momo" label="Ví MoMo" />
             </v-radio-group>
 
@@ -238,6 +264,12 @@ const snackbar = ref({
   text: '',
   color: 'success'
 })
+
+// Thêm các biến cho tìm kiếm địa chỉ
+const addressResults = ref([])
+const showAddressResults = ref(false)
+const addressSearchTimeout = ref(null)
+const API_KEY = 'fz6Wo5XE0CVjom5qYXfbJ2t0BDw6efT46nGiDj5U'
 
 // Validation Rules
 const rules = {
@@ -375,7 +407,7 @@ const placeOrder = async () => {
       }
       
       showMessage('Đặt hàng thành công')
-      router.push('/')
+      router.push('/orders')
     }
   } catch (error) {
     console.error('Order creation error:', error)
@@ -383,6 +415,48 @@ const placeOrder = async () => {
   } finally {
     isProcessing.value = false
   }
+}
+
+// Xử lý input địa chỉ
+const handleAddressInput = async () => {
+  if (addressSearchTimeout.value) {
+    clearTimeout(addressSearchTimeout.value)
+  }
+
+  const value = orderInfo.value.address
+  
+  if (!value || !value.trim()) {
+    showAddressResults.value = false
+    return
+  }
+
+  addressSearchTimeout.value = setTimeout(async () => {
+    try {
+      const response = await fetch(
+        `https://rsapi.goong.io/place/autocomplete?api_key=${API_KEY}&input=${encodeURIComponent(value)}`
+      )
+      const data = await response.json()
+      
+      if (data.status === 'OK') {
+        addressResults.value = data.predictions
+        showAddressResults.value = true
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error)
+    }
+  }, 300)
+}
+
+// Chọn địa chỉ từ kết quả
+const selectAddress = (place) => {
+  orderInfo.value.address = place.description
+  showAddressResults.value = false
+}
+
+// Clear địa chỉ
+const clearAddress = () => {
+  orderInfo.value.address = ''
+  showAddressResults.value = false
 }
 
 onMounted(() => {
@@ -419,6 +493,14 @@ onMounted(() => {
   
   // Clear saved items after loading
   localStorage.removeItem('checkoutItems')
+
+  // Thêm event listener để đóng kết quả khi click ra ngoài
+  document.addEventListener('click', (e) => {
+    const addressContainer = document.querySelector('.address-search-container')
+    if (addressContainer && !addressContainer.contains(e.target)) {
+      showAddressResults.value = false
+    }
+  })
 })
 
 // Responsive computed properties
@@ -512,6 +594,121 @@ const priceClass = computed(() => ({
   
   .gap-2 {
     gap: 8px;
+  }
+}
+
+.address-search-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Style cho input địa chỉ */
+.address-input :deep(.v-field__input) {
+  font-size: 18px !important;
+  padding: 20px 24px !important;
+  min-height: 64px !important;
+}
+
+/* Style cho dropdown kết quả */
+.address-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 500px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  margin-top: 8px;
+  width: 100%;
+}
+
+/* Style cho từng item kết quả */
+.address-result-item {
+  padding: 24px 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.address-result-item:last-child {
+  border-bottom: none;
+}
+
+.address-result-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Style cho text trong kết quả */
+.main-text {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  line-height: 1.6;
+}
+
+.secondary-text {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+  padding-left: 36px;
+}
+
+.location-icon {
+  min-width: 28px;
+  margin-right: 12px;
+  font-size: 24px !important;
+}
+
+/* Custom scrollbar */
+.address-results::-webkit-scrollbar {
+  width: 8px;
+}
+
+.address-results::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.address-results::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.address-results::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+  .address-input :deep(.v-field__input) {
+    font-size: 16px !important;
+    padding: 16px 20px !important;
+    min-height: 60px !important;
+  }
+  
+  .address-result-item {
+    padding: 20px 24px;
+    min-height: 90px;
+  }
+  
+  .main-text {
+    font-size: 16px;
+  }
+  
+  .secondary-text {
+    font-size: 14px;
+    padding-left: 32px;
   }
 }
 </style>

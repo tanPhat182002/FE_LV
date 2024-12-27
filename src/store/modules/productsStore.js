@@ -64,6 +64,7 @@ const productsStore = {
   mutations: {
     // Set products list
     SET_PRODUCTS(state, response) {
+      
       if (response.success) {
         state.products = response.data.data
         state.pagination = {
@@ -71,9 +72,9 @@ const productsStore = {
           last_page: response.data.last_page,
           per_page: response.data.per_page,
           total: response.data.total,
-          from: response.data.from,
-          to: response.data.to
+       
         }
+       
       }
     },
 
@@ -95,18 +96,18 @@ const productsStore = {
     // Set pagination data
     SET_PAGINATION(state, pagination) {
       state.pagination = {
-        current_page: pagination.current_page,
-        last_page: pagination.last_page,
-        per_page: pagination.per_page,
-        total: pagination.total,
-        from: pagination.from,
-        to: pagination.to
+        current_page: pagination.data.current_page,
+        last_page: pagination.data.last_page,
+        per_page: pagination.data.per_page,
+        total: pagination.data.total,
+  
       }
+    
     },
 
     // Update current page
     UPDATE_PAGINATION_PAGE(state, page) {
-      state.pagination.currentPage = page
+      state.pagination.current_page = page
     },
 
     // Set filters
@@ -132,6 +133,10 @@ const productsStore = {
 
     SET_CURRENT_PAGE(state, page) {
       state.pagination.current_page = page
+    },
+
+    SET_PRODUCTS_DATA(state, data) {
+      state.products = data
     }
   },
 
@@ -144,11 +149,12 @@ const productsStore = {
         commit('CLEAR_ERROR')
 
         const params = {
-          page: state.pagination.currentPage,
-          per_page: state.pagination.itemsPerPage,
+          page: state.pagination.current_page,
+          per_page: state.pagination.per_page,
           search: state.filters.search,
           brand_id: state.filters.brand_id,
           category_id: state.filters.category_id,
+          is_active: state.filters.is_active,
           sort_by: state.filters.sortBy,
           sort_desc: state.filters.sortDesc
         }

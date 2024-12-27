@@ -52,7 +52,7 @@
                 </v-chip>
               </div>
               <div class="text-caption text-medium-emphasis">
-                Đặt hàng lúc: {{ formatDate(orderDetail.summary.created_date) }}
+                Đặt hàng lúc: {{ orderDetail.summary.created_date }}
               </div>
             </v-card-text>
           </v-card>
@@ -232,15 +232,15 @@ const formatPrice = (price) => {
   }).format(price)
 }
 
-const formatDate = (dateString) => {
-  return new Date(dateString).toLocaleDateString('vi-VN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
+// const formatDate = (dateString) => {
+//   return new Date(dateString).toLocaleDateString('vi-VN', {
+//     year: 'numeric',
+//     month: '2-digit',
+//     day: '2-digit',
+//     hour: '2-digit',
+//     minute: '2-digit'
+//   })
+// }
 
 // Fetch order detail on mount
 onMounted(async () => {

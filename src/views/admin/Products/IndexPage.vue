@@ -245,6 +245,7 @@
         </template>
       </v-data-table>
 
+      
       <!-- Pagination -->
       <div class="d-flex justify-end pa-4">
         <v-pagination
@@ -332,8 +333,8 @@ const filters = ref({
 
 // Constants
 const statusOptions = [
-  { text: 'Đang bán', value: true },
-  { text: 'Ngừng bán', value: false }
+  { text: 'Đang bán', value: 1 },
+  { text: 'Ngừng bán', value: 0 }
 ]
 
 const headers = [
@@ -407,6 +408,7 @@ const isLoading = computed(() => store.getters['products/isLoading'])
 const calculateIndex = (index) => {
   return (currentPage.value - 1) * itemsPerPage.value + index + 1
 }
+
 
 const formatDate = (dateString) => {
   if (!dateString) return ''

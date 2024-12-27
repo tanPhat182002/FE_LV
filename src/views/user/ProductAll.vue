@@ -356,45 +356,36 @@ const sortOptions = [
 // Methods
 const loadProducts = async () => {
   try {
-    const params = {
-      page: currentPage.value,
-      per_page: 12,
-      categories: filters.value.categories?.join(','),
-      brands: filters.value.brands?.join(','),
-      search: filters.value.search,
-      sort_by: filters.value.sortBy
+    // Tạo URLSearchParams để xử lý params đúng cách
+    const searchParams = new URLSearchParams()
+    searchParams.append('page', currentPage.value)
+    searchParams.append('per_page', 12)
+    
+    if (filters.value.categories?.length) {
+      searchParams.append('categories', filters.value.categories.join(','))
+    }
+    
+    if (filters.value.brands?.length) {
+      searchParams.append('brands', filters.value.brands.join(','))
+    }
+    
+    if (filters.value.search) {
+      searchParams.append('search', filters.value.search) // Không encode ở đây
+    }
+    
+    if (filters.value.sortBy !== 'latest') {
+      searchParams.append('sort_by', filters.value.sortBy)
     }
 
-    await store.dispatch('home/fetchAllProducts', params)
-    updateURL()
+    await store.dispatch('home/fetchAllProducts', Object.fromEntries(searchParams))
+    
+    // Cập nhật URL mà không encode lại
+    const currentURL = new URL(window.location.href)
+    currentURL.search = searchParams.toString()
+    router.replace(currentURL.pathname + currentURL.search)
+    
   } catch (error) {
     console.error('Error loading products:', error)
-  }
-}
-
-const updateURL = () => {
-  const query = {
-    page: currentPage.value > 1 ? currentPage.value : undefined,
-    categories: filters.value.categories?.length ? filters.value.categories.join(',') : undefined,
-    brands: filters.value.brands?.length ? filters.value.brands.join(',') : undefined,
-    search: filters.value.search || undefined,
-    promotion: filters.value.promotion || undefined,
-    sort_by: filters.value.sortBy !== 'latest' ? filters.value.sortBy : undefined
-  }
-
-  const cleanQuery = Object.fromEntries(
-    Object.entries(query).filter(entry => 
-      entry[1] !== undefined && 
-      entry[1] !== null && 
-      entry[1] !== '' && 
-      entry[1] !== false
-    )
-  )
-
-  if (Object.keys(cleanQuery).length > 0) {
-    router.replace({ query: cleanQuery })
-  } else {
-    router.replace({ path: route.path })
   }
 }
 
@@ -455,25 +446,24 @@ onMounted(async () => {
 watch(
   () => route.query,
   (newQuery) => {
-    // Chỉ cập nhật filters khi có giá trị hợp lệ
     filters.value = {
-      search: newQuery.search || '',
+      search: newQuery.search || '', // Không cần decode vì browser tự động decode
       categories: newQuery.categories && newQuery.categories !== '' 
         ? newQuery.categories.split(',').map(Number) 
         : null,
       brands: newQuery.brands && newQuery.brands !== ''
         ? newQuery.brands.split(',').map(Number)
         : null,
-      promotion: newQuery.promotion === 'true',
       sortBy: newQuery.sort_by || 'latest'
     }
     
-    // Reset về trang 1 khi có search mới
     if (newQuery.search !== route.query.search) {
       currentPage.value = 1
     }
     
-    loadProducts()
+    if (!route.query.search) {
+      loadProducts()
+    }
   },
   { immediate: true, deep: true }
 )

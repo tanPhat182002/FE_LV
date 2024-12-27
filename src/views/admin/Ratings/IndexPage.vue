@@ -13,7 +13,7 @@
       <v-card-text>
         <v-row>
           <!-- Search -->
-          <v-col cols="12" sm="4">
+          <!-- <v-col cols="12" sm="4">
             <v-text-field
               v-model="search"
               label="Tìm kiếm đánh giá"
@@ -24,7 +24,7 @@
               clearable
               @update:model-value="handleSearch"
             ></v-text-field>
-          </v-col>
+          </v-col> -->
 
           <!-- Status Filter -->
           <v-col cols="12" sm="4">
@@ -41,7 +41,7 @@
           </v-col>
 
           <!-- Rating Filter -->
-          <v-col cols="12" sm="4">
+          <!-- <v-col cols="12" sm="4">
             <v-select
               v-model="filters.star_rating"
               :items="ratingOptions"
@@ -52,7 +52,7 @@
               clearable
               @update:model-value="handleFilterChange"
             ></v-select>
-          </v-col>
+          </v-col> -->
         </v-row>
       </v-card-text>
 
@@ -250,7 +250,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import debounce from 'lodash/debounce'
+// import debounce from 'lodash/debounce'
 
 // Store
 const store = useStore()
@@ -277,13 +277,13 @@ const approvalStatusOptions = [
   { title: 'Chờ duyệt', value: false }
 ]
 
-const ratingOptions = [
-  { title: '5 sao', value: 5 },
-  { title: '4 sao', value: 4 },
-  { title: '3 sao', value: 3 },
-  { title: '2 sao', value: 2 },
-  { title: '1 sao', value: 1 }
-]
+// const ratingOptions = [
+//   { title: '5 sao', value: 5 },
+//   { title: '4 sao', value: 4 },
+//   { title: '3 sao', value: 3 },
+//   { title: '2 sao', value: 2 },
+//   { title: '1 sao', value: 1 }
+// ]
 
 const headers = [
   {
@@ -394,17 +394,17 @@ const rejectRating = async (id) => {
 }
 
 // Filter Methods
-const handleSearch = debounce(async () => {
-  try {
-    await store.dispatch('rating/getRatings', {
-      ...filters.value,
-      search: search.value
-    })
-  } catch (error) {
-    console.error('Search error:', error)
-    showMessage('Có lỗi khi tìm kiếm', 'error')
-  }
-}, 300)
+// const handleSearch = debounce(async () => {
+//   try {
+//     await store.dispatch('rating/getRatings', {
+//       ...filters.value,
+//       search: search.value
+//     })
+//   } catch (error) {
+//     console.error('Search error:', error)
+//     showMessage('Có lỗi khi tìm kiếm', 'error')
+//   }
+// }, 300)
 
 const handleFilterChange = async () => {
   try {

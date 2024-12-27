@@ -171,7 +171,7 @@
       </v-row>
 
       <!-- Thêm phần thống kê theo tháng -->
-      <v-row class="mt-4">
+      <!-- <v-row class="mt-4">
         <v-col cols="12">
           <v-card>
             <v-card-title class="text-subtitle-1 font-weight-medium py-4 px-4">
@@ -183,7 +183,7 @@
             </v-card-text>
           </v-card>
         </v-col>
-      </v-row>
+      </v-row> -->
 
       <!-- Thêm phần thống kê theo khoảng thời gian -->
       <v-row class="mt-4">
@@ -442,7 +442,7 @@ const fetchRevenueStats = async () => {
 }
 
 // Thêm computed properties
-const getMonthlyChartData = computed(() => store.getters['dashboard/getMonthlyChartData'])
+// const getMonthlyChartData = computed(() => store.getters['dashboard/getMonthlyChartData'])
 const getRevenueStats = computed(() => store.getters['dashboard/getRevenueStats'])
 const getRevenueStatsChartData = computed(() => store.getters['dashboard/getRevenueStatsChartData'])
 
